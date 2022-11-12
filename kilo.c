@@ -7,7 +7,7 @@ void enableRawMode()
 
   tcgetattr(STDIN_FILENO, &raw);
 
-  raw.c_cflag &= ~(ECHO);
+  raw.c_lflag &= ~(ECHO);
 
   tcsetattr(STDIN_FILENO, TCSAFLUSH, &raw);
 }
