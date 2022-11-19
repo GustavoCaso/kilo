@@ -8,7 +8,7 @@
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <strings.h>
+#include <string.h>
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <termios.h>
@@ -80,13 +80,13 @@ void disableRawMode()
 void enableRawMode()
 {
   if (tcgetattr(STDIN_FILENO, &E.orig_termios) == -1)
-    die("tcsetattr");
+    die("tcgetattr");
   atexit(disableRawMode);
 
   struct termios raw = E.orig_termios;
   raw.c_iflag &= ~(BRKINT | ICRNL | INPCK | ISTRIP | IXON);
   raw.c_oflag &= ~(OPOST);
-  raw.c_oflag |= ~(CS8);
+  raw.c_cflag |= (CS8);
   raw.c_lflag &= ~(ECHO | ICANON | IEXTEN | ISIG);
   raw.c_cc[VMIN] = 0;
   raw.c_cc[VTIME] = 1;
@@ -98,10 +98,10 @@ int editorReadKey()
 {
   int nread;
   char c;
-  while ((nread = read(STDERR_FILENO, &c, 1)) != 1)
+  while ((nread = read(STDIN_FILENO, &c, 1)) != 1)
   {
 
-    if (nread == -1 && nread != EAGAIN)
+    if (nread == -1 && errno != EAGAIN)
       die("read");
   }
 
@@ -116,7 +116,7 @@ int editorReadKey()
 
     if (seq[0] == '[')
     {
-      if (seq[1] >= '0' && seq[1] < '9')
+      if (seq[1] >= '0' && seq[1] <= '9')
       {
         if (read(STDIN_FILENO, &seq[2], 1) != 1)
           return '\x1b';
@@ -160,7 +160,7 @@ int editorReadKey()
         }
       }
     }
-    else if (seq[0] == '0')
+    else if (seq[0] == 'O')
     {
       switch (seq[1])
       {
