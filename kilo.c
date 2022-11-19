@@ -52,6 +52,7 @@ struct editorConfig
   int screenrows;
   int screencols;
   int numrows;
+  int debug;
   erow *row;
   struct termios orig_termios;
 };
@@ -419,6 +420,19 @@ void editorDrawRows(struct abuf *ab)
   }
 }
 
+void debugEditor()
+{
+  if (E.debug)
+  {
+    printf("Contents of editorConfig are:\n");
+    printf("\ncx: %d\n", E.cx);
+    printf("cy: %d\n", E.cy);
+    printf("rx: %d\n", E.rx);
+    printf("screenrows: %d\n", E.screenrows);
+    printf("screencols: %d\n", E.screencols);
+  }
+}
+
 void editorRefreshScreen()
 {
   editorScroll();
@@ -437,6 +451,8 @@ void editorRefreshScreen()
   abAppend(&ab, "\x1b[?25h", 6);
 
   write(STDOUT_FILENO, ab.b, ab.len);
+
+  debugEditor();
   abFree(&ab);
 }
 
@@ -532,7 +548,7 @@ void editorProcessKeyPress()
 
 /*** init ***/
 
-void initEditor()
+void initEditor(int debug)
 {
   E.cx = 0;
   E.cy = 0;
@@ -541,6 +557,7 @@ void initEditor()
   E.coloff = 0;
   E.numrows = 0;
   E.row = NULL;
+  E.debug = debug;
 
   if (getWindowSize(&E.screenrows, &E.screencols) == -1)
     die("getWindowSize");
@@ -549,7 +566,7 @@ void initEditor()
 int main(int argc, char *argv[])
 {
   enableRawMode();
-  initEditor();
+  initEditor(0);
   if (argc >= 2)
   {
     editorOpen(argv[1]);
